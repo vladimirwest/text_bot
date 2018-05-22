@@ -1,6 +1,10 @@
 import vkapi
 import os
 import importlib
+import requests
+from celery import Celery
+from wit import Wit
+from contextlib import closing
 from command_system import command_list
 
 
@@ -56,6 +60,20 @@ def get_answer(body):
        message = 'Я понял ваш запрос как "%s"\n\n' % key + message
    return message, attachment
 
+def recognize_voice(data, link, token, wit_token):
+    user_id = data['user_id']
+    client = Wit(wit_token)
+    doc = requests.get(link)
+    resp = None
+    with closing(doc):
+        try:
+            resp = client.speech(doc.content, None, {'Content-Type': 'audio/mpeg3'})
+            resp = str(resp['_text'])
+        except:
+            resp = "Не удалось распознать сообщение"
+        finally:
+            vkapi.send_message(user_id, token, resp, '')
+    return
 
 
 def create_answer(data, token):
