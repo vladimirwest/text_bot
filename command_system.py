@@ -4,6 +4,7 @@ command_list = []
 class Command:
    def __init__(self):
        self.__keys = []
+       self.arg = ""
        self.description = ''
        command_list.append(self)
 
@@ -16,5 +17,6 @@ class Command:
        for k in mas:
            self.__keys.append(k.lower())
 
-   def process(self):
+   def process(self, arg):
+       self.arg = arg
        pass

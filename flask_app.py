@@ -1,9 +1,5 @@
-
-# A very simple Flask Hello World app for you to get started with...
-
 from flask import Flask, request, json
 from settings import *
-import vk
 import messageHandler
 
 app = Flask(__name__)

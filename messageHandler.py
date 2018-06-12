@@ -2,7 +2,6 @@ import vkapi
 import os
 import importlib
 import requests
-from celery import Celery
 from wit import Wit
 from contextlib import closing
 from command_system import command_list
@@ -39,32 +38,36 @@ def load_modules():
        importlib.import_module("commands." + m[0:-3])
 
 
-def get_answer(body):
-   message = "Прости, не понимаю тебя. Напиши 'помощь', чтобы узнать мои команды"
-   attachment = ''
-   distance = len(body)
-   command = None
-   key = ''
-   for c in command_list:
-       for k in c.keys:
-           d = damerau_levenshtein_distance(body, k)
-           if d < distance:
-               distance = d
-               command = c
-               key = k
-               if distance == 0:
-                   message, attachment = c.process()
-                   return message, attachment
-   if distance < len(body)*0.4:
-       message, attachment = command.process()
-       message = 'Я понял ваш запрос как "%s"\n\n' % key + message
-   return message, attachment
+def get_answer(body, arg):
+    message = "Прости, не понимаю тебя. Напиши 'помощь', чтобы узнать мои команды"
+    attachment = ''
+    distance = len(body)
+    command = None
+    key = ''
+    for c in command_list:
+        for k in c.keys:
+            d = damerau_levenshtein_distance(body, k)
+            if d < distance:
+                distance = d
+                command = c
+                key = k
+                if distance == 0:
+                    message, attachment = c.process(arg)
+                    return message, attachment
+    if distance < len(body)*0.4:
+        message, attachment = command.process(arg)
+        message = 'Я понял ваш запрос как "%s"\n\n' % key + message
+    return message, attachment
+
 
 def recognize_voice(data, link, token, wit_token):
     user_id = data['user_id']
     client = Wit(wit_token)
     doc = requests.get(link)
     resp = None
+    #if len(doc.content)>100000:
+        #resp = "Распознование больших сообщений пока что находится в альфа-версии.\nИзвините, если сообщение будет приходить несколько раз - скоро проблема будет пофикшена."
+        #vkapi.send_message(user_id, token, resp, '')
     with closing(doc):
         try:
             resp = client.speech(doc.content, None, {'Content-Type': 'audio/mpeg3'})
@@ -77,8 +80,13 @@ def recognize_voice(data, link, token, wit_token):
 
 
 def create_answer(data, token):
-   load_modules()
-   user_id = data['user_id']
-   message, attachment = get_answer(data['body'].lower())
-   vkapi.send_message(user_id, token, message, attachment)
-
+    load_modules()
+    user_id = data['user_id']
+    command = data['body']
+    space_pos = command.find(' ')
+    arg = ""
+    if(space_pos!=-1):
+        arg = command[space_pos+1:]
+        command = command[:space_pos]
+    message, attachment = get_answer(command.lower(), arg)
+    vkapi.send_message(user_id, token, message, attachment)
