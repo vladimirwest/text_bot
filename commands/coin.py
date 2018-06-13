@@ -4,7 +4,7 @@ import command_system
 
 def coin(arg):
    # Бросаем монетку
-    message = 'Бросаем монетку:\n'
+    message = '?? Бросаем монетку:\n'
     flip = random.randint(0, 1)
     if (flip == 0):
         message += 'Решка'

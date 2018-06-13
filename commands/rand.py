@@ -17,6 +17,6 @@ def rand(arg):
 
 rand_command = command_system.Command()
 
-rand_command.keys = ['random', 'randint', 'рандом']
-rand_command.description = 'Выберу рандомное число из диапазона [x:y].\nИспользование: рандом x y'
+rand_command.keys = ['рандом', 'randint', 'random']
+rand_command.description = 'Выберу рандомное число из диапазона [x:y]. Использование: рандом x y'
 rand_command.process = rand

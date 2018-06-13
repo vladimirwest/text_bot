@@ -1,11 +1,8 @@
 ﻿import feedparser
-import urllib
-import urllib.request, json
-import requests
 import command_system
 
 def news(arg):
-	message = ''
+	message = 'Держу тебя в курсе!\n\n'
 	data_parsed = feedparser.parse('https://news.yandex.ru/Nizhny_Novgorod/index.rss')
 	for news in data_parsed['entries']:
 		message += "📰 " + news['title'] + '\n' 
