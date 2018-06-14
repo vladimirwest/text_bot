@@ -11,32 +11,38 @@ emojisDict = {'Clear':'☀','Clouds':'☁','Rain':'☂','Snow':'☃'}
 
 
 def weather(arg):
-    owm = pyowm.OWM(WeatherAPIKey)  # You MUST provide a valid API key
+    owm = pyowm.OWM('987261374a471c213aa3a780e96eda47')  # You MUST provide a valid API key
     fc = owm.three_hours_forecast('Nizhny Novgorod,ru')
     f = fc.get_forecast()
     skip_counter = 1
-    day_time_counter = 1
     day_counter = 0
+    current_date = ""
+    cleared = False
+    temp_Log = ""
     Log = ""
     for weather in f:
         if (skip_counter%2 == 1):
-            if (day_time_counter == 2):
-                Log = Log + ("\t🌝 Утро: ")
+            
+            if ( (arg == "завтра") and (day_counter == 1) and (not cleared)):
+                Log = ""
+                cleared = True
+            
+            if(current_date != str(weather.get_reference_time('date').date()).split('-')[2]):
+                temp_Log = temp_Log + (str(weather.get_reference_time('date').date()).split('-')[2] + " " + months[str(weather.get_reference_time('date').date()).split('-')[1]] + ":\n")
+                current_date = str(weather.get_reference_time('date').date()).split('-')[2]
+            
+            if (str(weather.get_reference_time('date').time()).split(':')[0] == "09"):
+                temp_Log = temp_Log + ("\t🌝 Утро: ")
 
-            if (day_time_counter == 3):
-                Log = Log + ("\t🌞 День: ")
+            if (str(weather.get_reference_time('date').time()).split(':')[0] == "15"):
+                temp_Log = temp_Log + ("\t🌞 День: ")
 
-            if (day_time_counter == 4):
-                Log = Log + ("\t🌛 Вечер: ")
-                day_time_counter = 0
+            if (str(weather.get_reference_time('date').time()).split(':')[0] == "21"):
+                temp_Log = temp_Log + ("\t🌛 Вечер: ")
                 day_counter = day_counter + 1
 
-
-            if (day_time_counter == 1):
-                if ( (arg == "завтра") and day_counter == 1):
-                    Log = ""
-                Log = Log + (str(weather.get_reference_time('date').date()).split('-')[2] + " " + months[str(weather.get_reference_time('date').date()).split('-')[1]] + ":\n")
-                Log = Log + ("\t🌚 Ночь: ")
+            if (str(weather.get_reference_time('date').time()).split(':')[0] == "03"):
+                temp_Log = temp_Log + ("\t🌚 Ночь: ")
 
             wind = "{0} {1}".format(weather.get_wind()['speed'], winddirArray[int(math.floor(weather.get_wind()['deg'] + 0.5) % 16)])
             humidity = weather.get_humidity()
@@ -44,18 +50,21 @@ def weather(arg):
             status = weather.get_status()
             try:
                 weatherResult = "{0}°C {1} {2}, wind {3} m/s, humidity {4}%".format(temp, status,emojisDict[status], wind, humidity)
-                Log = Log + weatherResult + "\n"
+                temp_Log = temp_Log + weatherResult + "\n"
             except TypeError:
                 weatherResult = "{0}°C {1}, wind {2} m/s, humidity {3}%".format(temp, status, wind,humidity)
-                Log = Log + weatherResult + "\n"
-
+                temp_Log = temp_Log + weatherResult + "\n"
+            
+            if (str(weather.get_reference_time('date').time()).split(':')[0] == "21"):
+                Log = Log + temp_Log
+                temp_Log = ""
+            
             if ( (arg == "сегодня" or arg == "") and day_counter == 1):
                 return Log,""
 
             if (arg == "завтра" and day_counter == 2):
                 return Log,""
 
-            day_time_counter = day_time_counter + 1
 
         skip_counter = skip_counter + 1
     if(arg == "прогноз"):
